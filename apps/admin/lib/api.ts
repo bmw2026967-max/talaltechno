@@ -79,3 +79,29 @@ export async function login(email: string, password: string, tenantSlug?: string
   setUser(result.data.user);
   return result.data;
 }
+
+export interface SetupPayload {
+  tenantName: string;
+  tenantSlug: string;
+  ownerName: string;
+  ownerEmail: string;
+  ownerPassword: string;
+  branchName?: string;
+  city?: string;
+}
+
+export async function setupStatus() {
+  return request<{ data: { initialized: boolean } }>('/setup/status');
+}
+
+export async function setup(payload: SetupPayload) {
+  const result = await request<{ data: { tenant: { slug: string }; owner: { email: string } } }>('/setup', {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+  return result.data;
+}
+
+export async function createUser(body: { name: string; email: string; password: string; role?: string; phone?: string; branchId?: string }) {
+  return request<{ data: unknown }>('/users', { method: 'POST', body: JSON.stringify(body) });
+}

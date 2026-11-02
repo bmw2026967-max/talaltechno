@@ -1,13 +1,13 @@
 'use client';
 
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { BrandLockup, BrandMark } from '@/components/brand';
 import { Icon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Input, Label } from '@/components/ui/input';
-import { clearSession, login, setUser } from '@/lib/api';
+import { clearSession, login, setUser, setup, setupStatus, type SetupPayload } from '@/lib/api';
 import { useToast } from '@/components/toast';
 
 const features = [
@@ -20,11 +20,33 @@ const features = [
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const [mode, setMode] = useState<'login' | 'setup'>('login');
+  const [initialized, setInitialized] = useState<boolean | null>(null);
+
+  // login fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [tenantSlug, setTenantSlug] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // setup fields
+  const [sTenantName, setSTenantName] = useState('');
+  const [sTenantSlug, setSTenantSlug] = useState('');
+  const [sOwnerName, setSOwnerName] = useState('');
+  const [sOwnerEmail, setSOwnerEmail] = useState('');
+  const [sOwnerPassword, setSOwnerPassword] = useState('');
+  const [setupLoading, setSetupLoading] = useState(false);
+  const [setupError, setSetupError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setupStatus()
+      .then((r) => {
+        setInitialized(r.data.initialized);
+        if (!r.data.initialized) setMode('setup');
+      })
+      .catch(() => setInitialized(null));
+  }, []);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -42,6 +64,33 @@ export default function LoginPage() {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const submitSetup = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSetupLoading(true);
+    setSetupError(null);
+    try {
+      const payload: SetupPayload = {
+        tenantName: sTenantName,
+        tenantSlug: sTenantSlug.trim().toLowerCase(),
+        ownerName: sOwnerName,
+        ownerEmail: sOwnerEmail,
+        ownerPassword: sOwnerPassword
+      };
+      await setup(payload);
+      toast('تم إنشاء المنشأة. سجّل الدخول الآن.');
+      // prefill login
+      setTenantSlug(payload.tenantSlug);
+      setEmail(payload.ownerEmail);
+      setPassword(payload.ownerPassword);
+      setMode('login');
+      setInitialized(true);
+    } catch (reason) {
+      setSetupError(reason instanceof Error ? reason.message : 'تعذر إنشاء المنشأة.');
+    } finally {
+      setSetupLoading(false);
     }
   };
 
@@ -79,129 +128,123 @@ export default function LoginPage() {
               <br />
               من أول طلب إلى القيد المحاسبي.
             </h1>
-            <p className="mt-5 max-w-lg text-sm leading-7 text-white/65">
-              منصة مفتوحة المصدر تجمع نقطة البيع، المطبخ، المخزون، المحاسبة، الولاء، والتكاملات في نظام واحد — مع
-              إمكانية العمل دون إنترنت.
+            <p className="mt-5 max-w-lg text-sm leading-7 text-[#f4efe3]/75">
+              نظام متكامل: نقاط بيع، مخزون بوصفات، شاشة مطبخ، قائمة QR، ولاء، محاسبة، ZATCA Sandbox، وتكاملات توصيل ومدفوعات — Mock.
             </p>
           </div>
         </div>
-
-        <div className="relative mt-12 grid gap-3 sm:grid-cols-2">
+        <div className="relative grid gap-3 sm:grid-cols-2">
           {features.map((feature) => (
-            <div key={feature.title} className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
-              <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand-gold/15 text-brand-gold">
+            <div key={feature.title} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-brand-gold/15 text-brand-gold">
                 <Icon name={feature.icon} size={18} />
-              </span>
-              <p className="mt-3 text-sm font-bold">{feature.title}</p>
-              <p className="mt-1 text-[11px] leading-5 text-white/55">{feature.text}</p>
+              </div>
+              <p className="text-sm font-bold">{feature.title}</p>
+              <p className="mt-1 text-xs leading-5 text-[#f4efe3]/65">{feature.text}</p>
             </div>
           ))}
         </div>
-
-        <div className="relative mt-10 flex items-center gap-2 text-[10px] text-white/40">
-          <BrandMark size={22} />
-          TALAL TECHNO © 2026 · AGPL-3.0 · Sandbox / Mock integrations only
-        </div>
       </section>
 
-      <section className="flex items-center justify-center px-4 py-10 sm:px-8">
+      <section className="flex items-center justify-center bg-background p-6 sm:p-10">
         <div className="w-full max-w-md">
-          <div className="mb-8 flex items-center justify-between lg:hidden">
-            <BrandLockup />
-            <span className="text-[10px] font-semibold text-muted-foreground">ERP + POS</span>
+          <div className="mb-8 flex items-center gap-3 lg:hidden">
+            <BrandMark />
+            <div>
+              <p className="text-sm font-extrabold">طلال تكنو</p>
+              <p className="text-xs text-muted-foreground">ERP + POS</p>
+            </div>
           </div>
 
-          <div className="talal-card p-6 sm:p-8">
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-brand-gold">تسجيل الدخول</p>
-            <h2 className="mt-1 text-2xl font-extrabold tracking-tight">مرحباً بعودتك</h2>
-            <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
-              ادخل بحساب المنشأة للاتصال بالـ API، أو استكشف لوحة التحكم ببيانات تجريبية كاملة.
-            </p>
-
-            <form onSubmit={submit} className="mt-6 space-y-4">
-              <div>
-                <Label htmlFor="tenantSlug">رمز المنشأة (Tenant Slug)</Label>
-                <Input
-                  id="tenantSlug"
-                  type="text"
-                  autoComplete="organization"
-                  placeholder="talal-techno"
-                  value={tenantSlug}
-                  onChange={(event) => setTenantSlug(event.target.value)}
-                  dir="ltr"
-                  className="text-left"
-                />
-                <p className="mt-1 text-[10px] leading-4 text-muted-foreground">
-                  اختياري عند وجود بريد فريد، ومطلوب عند تكرار البريد بين منشأتين.
+          {mode === 'login' ? (
+            <>
+              <div className="mb-8">
+                <h2 className="text-2xl font-extrabold">تسجيل الدخول</h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {initialized === false
+                    ? 'النظام غير مُهيّأ بعد. اضغط "إعداد المنشأة" أدناه.'
+                    : 'أدخل بياناتك للوصول إلى لوحة التحكم.'}
                 </p>
               </div>
-              <div>
-                <Label htmlFor="email">البريد الإلكتروني</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  placeholder="admin@talaltechno.dev"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  required
-                  dir="ltr"
-                  className="text-left"
-                />
-              </div>
-              <div>
-                <Label htmlFor="password">كلمة المرور</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  autoComplete="current-password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  required
-                  dir="ltr"
-                  className="text-left"
-                />
-              </div>
 
-              {error ? (
-                <div className="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2.5 text-[11px] leading-5 text-red-700 dark:text-red-300">
-                  {error}
+              {initialized === false && (
+                <Button type="button" className="mb-4 w-full" onClick={() => setMode('setup')}>
+                  <Icon name="settings" size={16} />
+                  إعداد المنشأة (أول مرة)
+                </Button>
+              )}
+
+              <form onSubmit={submit} className="space-y-4">
+                <div>
+                  <Label>Tenant Slug (رمز المنشأة)</Label>
+                  <Input value={tenantSlug} onChange={(e) => setTenantSlug(e.target.value)} placeholder="talal" dir="ltr" />
                 </div>
-              ) : null}
+                <div>
+                  <Label>البريد الإلكتروني</Label>
+                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="owner@example.com" dir="ltr" required />
+                </div>
+                <div>
+                  <Label>كلمة المرور</Label>
+                  <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required />
+                </div>
+                {error && <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{error}</p>}
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? 'جارٍ الدخول...' : 'دخول'}
+                </Button>
+              </form>
 
-              <Button type="submit" className="w-full" size="lg" disabled={loading}>
-                {loading ? <Icon name="refresh" size={17} className="animate-spin" /> : <Icon name="logout" size={17} className="rotate-180" />}
-                {loading ? 'جارٍ التحقق…' : 'دخول بالـ API'}
+              <div className="my-6 flex items-center gap-3">
+                <div className="h-px flex-1 bg-border" />
+                <span className="text-xs text-muted-foreground">أو</span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+              <Button type="button" variant="outline" className="w-full" onClick={enterDemo}>
+                <Icon name="dashboard" size={16} />
+                دخول كزائر (عرض تجريبي)
               </Button>
-            </form>
-
-            <div className="my-5 flex items-center gap-3 text-[10px] text-muted-foreground">
-              <span className="h-px flex-1 bg-border" />
-              أو
-              <span className="h-px flex-1 bg-border" />
-            </div>
-
-            <Button variant="gold" size="lg" className="w-full" onClick={enterDemo}>
-              <Icon name="sparkles" size={17} />
-              دخول العرض التجريبي
-            </Button>
-
-            <div className="mt-5 rounded-xl border border-dashed bg-muted/30 p-3 text-[10px] leading-5 text-muted-foreground">
-              <p className="font-bold text-foreground">بيانات التهيئة التجريبية</p>
-              <p dir="ltr" className="mt-1 text-left font-mono">admin@talaltechno.dev · Talal@1234</p>
-              <p>تعمل فقط بعد تشغيل PostgreSQL وتنفيذ أمر التهيئة. لا تُستخدم في الإنتاج.</p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={enterDemo}
-            className="mx-auto mt-5 flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground transition hover:text-foreground"
-          >
-            <Icon name="arrow-left" size={13} />
-            تخطي الدخول واستخدام بيانات العرض
-          </button>
+              <p className="mt-4 text-center text-[11px] text-muted-foreground">
+                بيئة Sandbox — ZATCA/Mدفوعات/توصيل/طباعة محاكاة.
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="mb-8">
+                <h2 className="text-2xl font-extrabold">إعداد المنشأة (أول مرة)</h2>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  أنشئ مطعمك. سيُنشأ حساب المالك و10 طاولات ودليل الحسابات تلقائياً.
+                </p>
+              </div>
+              <form onSubmit={submitSetup} className="space-y-4">
+                <div>
+                  <Label>اسم المنشأة</Label>
+                  <Input value={sTenantName} onChange={(e) => setSTenantName(e.target.value)} placeholder="مطعم طلال" required />
+                </div>
+                <div>
+                  <Label>Tenant Slug (رمز لاتيني)</Label>
+                  <Input value={sTenantSlug} onChange={(e) => setSTenantSlug(e.target.value)} placeholder="talal" dir="ltr" required />
+                </div>
+                <div>
+                  <Label>اسم المالك</Label>
+                  <Input value={sOwnerName} onChange={(e) => setSOwnerName(e.target.value)} placeholder="أحمد" required />
+                </div>
+                <div>
+                  <Label>بريد المالك (تسجيل الدخول)</Label>
+                  <Input type="email" value={sOwnerEmail} onChange={(e) => setSOwnerEmail(e.target.value)} placeholder="owner@example.com" dir="ltr" required />
+                </div>
+                <div>
+                  <Label>كلمة المرور (8+ أحرف)</Label>
+                  <Input type="password" value={sOwnerPassword} onChange={(e) => setSOwnerPassword(e.target.value)} placeholder="••••••••" required />
+                </div>
+                {setupError && <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{setupError}</p>}
+                <Button type="submit" className="w-full" disabled={setupLoading}>
+                  {setupLoading ? 'جارٍ الإنشاء...' : 'إنشاء المنشأة'}
+                </Button>
+                <Button type="button" variant="outline" className="w-full" onClick={() => setMode('login')}>
+                  العودة لتسجيل الدخول
+                </Button>
+              </form>
+            </>
+          )}
         </div>
       </section>
     </div>

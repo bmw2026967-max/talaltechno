@@ -14,7 +14,7 @@ import { Table, TBody, TD, TH, THead, TR, TableWrap } from '@/components/ui/tabl
 import { useToast } from '@/components/toast';
 import { useApi } from '@/lib/use-api';
 import { demoOrganization } from '@/lib/demo';
-import { apiPatch, getToken } from '@/lib/api';
+import { apiPatch, createUser, getToken } from '@/lib/api';
 import { formatDate, formatNumber } from '@/lib/utils';
 
 type Branch = { id: string; name: string; code: string; address?: string; phone?: string; active: boolean };
@@ -99,6 +99,31 @@ export default function SettingsPage() {
   const [form, setForm] = useState<FormState>(emptyForm);
   const [settings, setSettings] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState(false);
+  const [showCreateUser, setShowCreateUser] = useState(false);
+  const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'CASHIER', phone: '', branchId: '' });
+  const [creatingUser, setCreatingUser] = useState(false);
+
+  const submitNewUser = async () => {
+    setCreatingUser(true);
+    try {
+      await createUser({
+        name: newUser.name,
+        email: newUser.email,
+        password: newUser.password,
+        role: newUser.role,
+        phone: newUser.phone || undefined,
+        branchId: newUser.branchId || undefined
+      });
+      toast('تم إنشاء المستخدم.');
+      setShowCreateUser(false);
+      setNewUser({ name: '', email: '', password: '', role: 'CASHIER', phone: '', branchId: '' });
+      overview.refresh();
+    } catch (reason) {
+      toast(reason instanceof Error ? reason.message : 'تعذر إنشاء المستخدم.');
+    } finally {
+      setCreatingUser(false);
+    }
+  };
 
   const data = overview.data.data;
 
@@ -361,7 +386,53 @@ export default function SettingsPage() {
             </div>
             <Badge variant="outline">{counts.users} مستخدم</Badge>
           </CardHeader>
-          <CardContent className="px-0 pb-0">
+          <CardContent className="space-y-4 px-0 pb-0">
+            <div className="flex items-center justify-between px-5">
+              <p className="text-xs text-muted-foreground">أضف كاشير/نادل/مدير/محاسب. كلمة المرور 8 أحرف على الأقل.</p>
+              <Button type="button" size="sm" onClick={() => setShowCreateUser((v) => !v)}>
+                <Icon name="users" size={14} />
+                {showCreateUser ? 'إلغاء' : 'مستخدم جديد'}
+              </Button>
+            </div>
+            {showCreateUser ? (
+              <div className="grid gap-3 border-y bg-muted/20 px-5 py-4 sm:grid-cols-2">
+                <Field label="الاسم">
+                  <Input value={newUser.name} onChange={(e) => setNewUser({ ...newUser, name: e.target.value })} placeholder="أحمد" />
+                </Field>
+                <Field label="البريد (تسجيل الدخول)">
+                  <Input type="email" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} placeholder="cashier@example.com" dir="ltr" />
+                </Field>
+                <Field label="كلمة المرور">
+                  <Input type="password" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} placeholder="••••••••" />
+                </Field>
+                <Field label="الدور">
+                  <Select value={newUser.role} onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}>
+                    <option value="CASHIER">كاشير</option>
+                    <option value="WAITER">نادل</option>
+                    <option value="KITCHEN">مطبخ</option>
+                    <option value="MANAGER">مدير</option>
+                    <option value="ACCOUNTANT">محاسب</option>
+                    <option value="ADMIN">مدير نظام</option>
+                  </Select>
+                </Field>
+                <Field label="الهاتف (اختياري)">
+                  <Input value={newUser.phone} onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })} placeholder="05xxxxxxxx" dir="ltr" />
+                </Field>
+                <Field label="الفرع (اختياري)">
+                  <Select value={newUser.branchId} onChange={(e) => setNewUser({ ...newUser, branchId: e.target.value })}>
+                    <option value="">— بدون فرع —</option>
+                    {data.branches.map((b: any) => (
+                      <option key={b.id} value={b.id}>{b.name}</option>
+                    ))}
+                  </Select>
+                </Field>
+                <div className="sm:col-span-2">
+                  <Button type="button" onClick={submitNewUser} disabled={creatingUser || !newUser.name || !newUser.email || newUser.password.length < 8}>
+                    {creatingUser ? 'جارٍ الإنشاء...' : 'إنشاء المستخدم'}
+                  </Button>
+                </div>
+              </div>
+            ) : null}
             <TableWrap>
               <Table>
                 <THead>

@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Patch } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { OrganizationService } from './organization.service';
 import { UpdateSettingsDto } from './dto/organization.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import type { AuthUser } from '../common/types/auth-user';
@@ -25,6 +26,12 @@ export class OrganizationController {
   @Get('users')
   users(@CurrentUser() user: AuthUser) {
     return this.organization.users(user.tenantId);
+  }
+
+  @Roles('OWNER', 'ADMIN')
+  @Post('users')
+  createUser(@CurrentUser() user: AuthUser, @Body() dto: CreateUserDto) {
+    return this.organization.createUser(user.tenantId, dto, user.role);
   }
 
   @Get('devices')

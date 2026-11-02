@@ -1,7 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import * as bcrypt from 'bcryptjs';
 import type { AuthUser } from '../common/types/auth-user';
 import type { UpdateSettingsDto } from './dto/organization.dto';
+import type { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class OrganizationService {
@@ -90,6 +92,41 @@ export class OrganizationService {
       orderBy: { name: 'asc' }
     });
     return { data: rows };
+  }
+
+  async createUser(tenantId: string, dto: CreateUserDto, actorRole: string) {
+    if (!['OWNER', 'ADMIN'].includes(actorRole)) throw new ForbiddenException('غير مصرح.');
+    const email = dto.email.toLowerCase().trim();
+    const existing = await this.prisma.user.findFirst({ where: { tenantId, email } });
+    if (existing) throw new ConflictException('البريد الإلكتروني مستخدم مسبقاً في هذه المنشأة.');
+    if (dto.branchId) {
+      const branch = await this.prisma.branch.findFirst({ where: { id: dto.branchId, tenantId } });
+      if (!branch) throw new NotFoundException('الفرع غير موجود.');
+    }
+    const passwordHash = await bcrypt.hash(dto.password, 12);
+    const user = await this.prisma.user.create({
+      data: {
+        tenantId,
+        branchId: dto.branchId || null,
+        name: dto.name,
+        email,
+        phone: dto.phone || null,
+        role: (dto.role || 'CASHIER') as any,
+        passwordHash
+      },
+      include: { branch: { select: { id: true, name: true } } }
+    });
+    return {
+      data: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: String(user.role).toLowerCase(),
+        branchName: user.branch?.name || '',
+        active: user.active
+      }
+    };
   }
 
   async devices(tenantId: string) {
