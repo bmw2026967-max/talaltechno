@@ -1,87 +1,98 @@
-# النشر على Render — دليل سريع (نسخة الإنتاج)
+# النشر على Render (مجاني) — دليل سريع
 
-هذا الدليل مكتوب لغير المبرمجين: كل نقرة مطلوبة بالترتيب. المساعد يستطيع تنفيذ رفع الكود، لكن إنشاء الحسابات والدفع يبقيان عليك.
+هذا الدليل لـ **الخطة المجانية (Free tier)**. لا بطاقة، لا اشتراك. لكنها تأتي بقيود (انظر "القيود" في الأسفل).
 
 ## ما تحتاجه
 
-| المتطلب | لماذا |
+| المتطلب | pourquoi |
 |---|---|
-| حساب GitHub (مجاني) | استضافة الكود علناً |
-| حساب Render + بطاقة بنكية | استضافة النظام 24/7 (Stripe) |
-| أربع قيم للمنشأة | تُدخل مرة واحدة عند النشر |
+| حساب GitHub (مجاني) | استضافة الكود |
+| حساب Neon (مجاني، بدون بطاقة) | قاعدة بيانات PostgreSQL دائمة |
+| حساب Render (مجاني) | استضافة النظام |
+| أربع قيم للمنشأة | تُدخل مرة واحدة |
 
-التكلفة التقديرية: **~27 دولاراً شهرياً** (3 خدمات × 7$ + قاعدة بيانات 6$). لا يوجد التزام طويل؛ يمكنك الإيقاف في أي وقت.
+## 1) إنشاء حساب GitHub ومستودع (إذا لم تفعل بعد)
 
----
+1. سجّل في <https://github.com/signup> وفعّل البريد.
+2. افتح <https://github.com/new>: الاسم `talaltechno`، **Public**، **لا** تضف README/.gitignore/License.
+3. رابط المستودع: `https://github.com/bmw2026967-max/talaltechno` (موجود بالفعل).
 
-## 1) إنشاء حساب GitHub
+## 2) إنشاء قاعدة بيانات مجانية على Neon (بدون بطاقة)
 
-1. افتح <https://github.com/signup>.
-2. أدخل بريدك وكلمة مرور قوية، ثم فعّل البريد من الرسالة.
-3. احفظ **اسم المستخدم** (username).
+1. افتح <https://neon.tech> → **Sign Up** (GitHub/Google/Email).
+2. **Create Project**: الاسم `talaltechno`، Region **AWS Asia Pacific (Singapore)** (الأقرب لـ Render singapore).
+3. بعد الإنشاء، من لوحة المشروع: **Connection Details** → انسخ **Connection string** (Pooled أو Direct — استخدم **Direct**).
+   - يجب أن ينتهي بـ `?sslmode=require` (Neon يتطلب SSL).
+   - مثال: `postgresql://user:pass@ep-xxx.ap-southeast-1.aws.neon.tech/neondb?sslmode=require`
+4. احفظه — ستلصقه في Render.
 
-## 2) رفع الكود (أسهل طريقة)
+> Neon Free: 0.5 GB، بدون انتهاء، بدون بطاقة. قاعدة بيانات واحدة (project) تكفي.
 
-اطلب من المساعد تنفيذ الرفع، وسيطلب منك:
+## 3) النشر على Render (مجاني)
 
-1. إنشاء **Personal Access Token**: GitHub → صورتك → **Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)** → **Generate new token (classic)**.
-2. الاسم: `talaltechno-deploy`، المدة: 7 أيام، الصلاحية: **repo** فقط.
-3. انسخ التوكن (يظهر مرة واحدة) وأرسله للمساعد مع اسم المستخدم.
+### خيار أ — زر النشر (أسهل)
 
-> بعد نجاح الرفع، احذف التوكن من GitHub فوراً.
+افتح: **https://render.com/deploy?repo=https://github.com/bmw2026967-max/talaltechno**
 
-بديل يدوي: استخدم GitHub Desktop لإنشاء مستودع Public باسم `talaltechno` ثم `Publish`.
+### خيار ب — يدوياً
 
-## 3) إنشاء الخدمات على Render
+1. سجّل في <https://dashboard.render.com/register> (GitHub).
+2. **New → Blueprint** → اختر المستودع `talaltechno`.
 
-1. افتح <https://dashboard.render.com/register> وسجّل بحساب GitHub.
-2. أضف بطاقة في **Billing** (Render يخصم 1$ للتحقق ثم يعيدها).
-3. من الشاشة الرئيسية: **New → Blueprint**.
-4. اختر المستودع `talaltechno` واضغط **Connect**.
-5. Render سيعرض الخدمات الخمس (قاعدة بيانات + 3 خدمات + لا Redis) ويطلب القيم التالية:
+### في كلا الخيارين
 
-| المتغير | مثال | ملاحظات |
-|---|---|---|
-| `TENANT_NAME` | `مطعم طلال` | اسم المنشأة كما يظهر في الفواتير |
-| `TENANT_SLUG` | `talal` | أحرف لاتينية صغيرة وأرقام وشرطة فقط (3–49) |
-| `OWNER_EMAIL` | `owner@example.com` | بريد تسجيل الدخول |
-| `OWNER_PASSWORD` | كلمة مرور قوية | 8 أحرف على الأقل — احفظها في مكان آمن |
+3. Render سيعرض 3 خدمات (لا قاعدة بيانات داخلية — سنستخدم Neon).
+4. سيطلب القيم التالية:
 
-6. اضغط **Apply**. سيبدأ بناء ثلاث صور Docker (15–30 دقيقة أول مرة).
-7. تابِع **Logs** لأي خدمة. أول ما ينجح فيه API ستظهر رسالة إنشاء المنشأة.
+| الحقل | القيمة |
+|---|---|
+| `DATABASE_URL` | connection string من Neon (الخطوة 2) |
+| `TENANT_NAME` | اسم مطعمك |
+| `TENANT_SLUG` | `talal` (أحرف لاتينية) |
+| `OWNER_EMAIL` | بريدك |
+| `OWNER_PASSWORD` | كلمة مرور قوية (8+) |
+
+5. اضغط **Apply Blueprint**. البناء الأول: 15–30 دقيقة.
 
 ## 4) التحقق
 
-- صحة API: افتح `https://talaltechno-api.onrender.com/health` — يجب أن يظهر `{"status":"ok"}`.
-- توثيق API: `https://talaltechno-api.onrender.com/docs`.
-- لوحة التحكم: `https://talaltechno-admin.onrender.com` ثم سجّل الدخول بـ:
-  - Tenant Slug: القيمة التي أدخلتها
-  - Email: `OWNER_EMAIL`
-  - Password: `OWNER_PASSWORD`
-- القائمة الإلكترونية: `https://talaltechno-emenu.onrender.com` (تعمل من الجوال).
+- صحة API: `https://talaltechno-api.onrender.com/health` → `{"status":"ok"}`
+- توثيق: `https://talaltechno-api.onrender.com/docs`
+- لوحة التحكم: `https://talaltechno-admin.onrender.com` → سجّل الدخول بـ Tenant Slug + Email + Password
+- القائمة: `https://talaltechno-emenu.onrender.com`
 
 ## 5) بعد النجاح
 
-1. في Render → خدمة `talaltechno-api` → **Environment**: غيّر `BOOTSTRAP_TENANT` إلى `false` (لمنع إعادة المحاولة عند كل إقلاع).
-2. اربط نطاقك: **Settings → Custom Domains** في كل خدمة، ثم أضف سجلات CNAME التي يعرضها Render.
-3. حدّث القيم الثلاث بعد ربط النطاق:
-   - في API: `APP_URL` = نطاق لوحة التحكم + نطاق القائمة (مفصولان بفاصلة).
-   - في Admin: `NEXT_PUBLIC_API_URL` و`NEXT_PUBLIC_EMENU_URL`.
-   - في E-Menu: `NEXT_PUBLIC_API_URL`.
-4. أعد النشر بعد تغيير `NEXT_PUBLIC_*` (تُدمج وقت البناء، وليس وقت التشغيل).
+1. في Render → `talaltechno-api` → **Environment**: غيّر `BOOTSTRAP_TENANT` إلى `false`.
+2. (اختياري) أبقِ الخدمات "مستيقظة" مجاناً: سجّل في <https://uptimerobot.com> (مجاني) وأضف monitor (HTTP, interval 5 min) لـ `https://talaltechno-api.onrender.com/health`. يمنع النوم (cold start).
+
+## ⚠️ القيود (مهم)
+
+| القيود | التأثير |
+|---|---|
+| خدمات الويب "تنام" بعد 15 دقيقة | أول طلب بعد النوم يأخذ ~1 دقيقة (UptimeRobot يحل 90%) |
+| 500 دقيقة بناء/شهر | كافية (3 خدمات × ~10 min) |
+| Neon 0.5 GB | كافٍ لسنوات (مطعم متوسط) |
+| Neon compute ينام بعد 5 min | إقلاع بارد ~1-2 ثانية (مقبول) |
+| لا دعم فني (Hobby) | دعم بريد/دردشة فقط |
+
+## الترقية لاحقاً (عند الحاجة)
+
+- **24/7 بدون نوم + 30$+**: غيّر `plan: free` → `plan: 0.5c-512mb` في `render.yaml` وأضف بطاقة. راجع `docs/CLOUD.md` §14 (خطة مدفوعة ~27$/شهر).
+- **قاعدة بيانات أكبر**: Neon Pro (10$+/شهر) أو Render Postgres.
 
 ## أخطاء شائعة
 
-| العَرَض | السبب والحل |
+| العَرَض | السبب/الحل |
 |---|---|
-| صفحة بيضاء في لوحة التحكم | `NEXT_PUBLIC_API_URL` خاطئ أو تغيّر اسم الخدمة → صحّحه وأعد النشر |
-| `CORS` في Console | أضف نطاق لوحة التحكم/القائمة إلى `APP_URL` في API |
-| فشل بناء API | راجع Logs؛ غالباً مشكلة في `pnpm install`. أعد المحاولة من **Manual Deploy → Clear build cache** |
-| `EADDRINUSE` أو فشل Health | Render يمرر `PORT`؛ لا تثبّت منفذاً يدوياً |
-| نسيان كلمة مرور المالك | أنشئ منشأة جديدة بـ `TENANT_SLUG` آخر، أو استخدم Render Shell لتحديث كلمة المرور |
+| `password authentication failed` | connection string من Neon خاطئ — أعد النسخ (Direct، مع `?sslmode=require`) |
+| `ETIMEDOUT` / `ENOTFOUND` | region mismatch أو Neon project معلّق — تحقق من Region |
+| صفحة بيضاء في لوحة التحكم | `NEXT_PUBLIC_API_URL` خاطئ → صحّح وأعد النشر |
+| `CORS` في Console | أضف نطاقي لوحة التحكم/القائمة إلى `APP_URL` في API |
+| فشل بناء | Logs → **Manual Deploy → Clear build cache** |
 
 ## ملاحظات أمنية
 
-- لا تضع `OWNER_PASSWORD` في `render.yaml` أو Git.
-- استخدم كلمة مرور فريدة، وفعّل 2FA على GitHub وRender.
-- المدفوعات وZATCA وطباعة الفواتير في وضع Sandbox/Mock — راجع `docs/CLOUD.md` قسم 13.
+- لا تضع `OWNER_PASSWORD` أو `DATABASE_URL` في Git.
+- فعّل 2FA على GitHub وRender وNeon.
+- المدفوعات وZATCA وطباعة الفواتير في وضع Sandbox/Mock (راجع `docs/CLOUD.md` §13).

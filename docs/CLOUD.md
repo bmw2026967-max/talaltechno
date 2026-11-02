@@ -322,6 +322,8 @@ docker compose --env-file .env.cloud -f docker-compose.cloud.yml up -d
 
 بديلاً عن VPS: يُنشر التطبيق كخدمات Docker على **Render** (منصة PaaS) دون الحاجة إلى إدارة خادم أو تثبيت Docker محلياً.
 
+> **خيار مجاني:** راجع `docs/RENDER-QUICKSTART.md` — uses Render Free tier + Neon (بدون بطاقة). قيود: خدمات "تنام" بعد 15 دقيقة، قاعدة بيانات Neon 0.5GB (بدون انتهاء). الخطة أدناه (مدفوعة، ~27$/شهر) هي "الإنتاج الحقيقي 24/7".
+
 ### البنية والتكلفة
 
 يحتوي المستودع على `render.yaml` الذي يحدد:

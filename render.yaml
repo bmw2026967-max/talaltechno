@@ -1,22 +1,16 @@
-# Render Blueprint — نشر "طلال تكنو" كخدمات Docker مُدارة.
-# الاستخدام: Render Dashboard → New → Blueprint → اختر هذا الملف.
+# Render Blueprint — نشر "طلال تكنو" مجانياً (Free tier).
+# الاستخدام: Render Dashboard → New → Blueprint → اختر هذا الملف (أو زر Deploy to Render).
 #
-# ملاحظات:
-# - الخدمات الثلاث + قاعدة البيانات كلها في منطقة singapore لقربها من السعودية.
-# - الخطط المدفوعة مطلوبة للإنتاج 24/7؛ خطة free تُوقف الخدمة عند الخمول
-#   وقاعدة البيانات المجانية تنتهي بعد 30 يوماً وتُحذف بياناتها.
-# - Render يمرّر متغيرات البيئة كـ build args تلقائياً، لذا NEXT_PUBLIC_*
-#   تُدمج داخل صور Next.js أثناء البناء.
-# - لا نستخدم Redis لأن الـ API لا يعتمد عليه (تحقق: لا يوجد أي استخدام لـ REDIS_URL في apps/api).
-
-databases:
-  - name: talaltechno-db
-    databaseName: talaltechno
-    user: talal
-    # 0.1c-256mb = 6$/شهر (أرخص خطة مدفوعة دائمة). للترقية لاحقاً: 0.5c-1g (19$).
-    plan: 0.1c-256mb
-    region: singapore
-    postgresMajorVersion: "16"
+# ⚠️ قيود الخطة المجانية (مهم):
+# - خدمات الويب المجانية "تنام" بعد 15 دقيقة من عدم الاستخدام (إقلاع بارد ~1 دقيقة).
+# - قاعدة بيانات Render المجانية تُحذف بعد 30 يوماً (مع بياناتها) — لذلك نستخدم
+#   Neon (مجانية، بدون بطاقة، بدون انتهاء) كقاعدة بيانات خارجية.
+# - 500 دقيقة بناء/شهر (كافية لثلاث خدمات).
+#
+# للاستخدام "الحقيقي" (24/7 بدون نوم وبدون حذف بيانات) راجع docs/CLOUD.md §14
+# (خطط مدفوعة ~27$/شهر) أو docs/RENDER-QUICKSTART.md.
+#
+# متغير DATABASE_URL (sync: false) سيُطلب عند الإنشاء — الصقه من Neon (انظر §4).
 
 services:
   # ---------------------------------------------------------------------------
@@ -25,17 +19,16 @@ services:
   - type: web
     name: talaltechno-api
     runtime: docker
-    plan: 0.5c-512mb
+    plan: free
     region: singapore
     dockerfilePath: apps/api/Dockerfile
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
+      # الصق هنا connection string من Neon (postgresql://...?sslmode=require)
       - key: DATABASE_URL
-        fromDatabase:
-          name: talaltechno-db
-          property: connectionString
+        sync: false
       # CORS: النطاقات المسموح لها بالاتصال بالـ API (admin + e-menu).
       - key: APP_URL
         value: https://talaltechno-admin.onrender.com,https://talaltechno-emenu.onrender.com
@@ -43,8 +36,6 @@ services:
         generateValue: true
       - key: PIN_PEPPER
         generateValue: true
-      # يطبّق مخطط Prisma عند كل إقلاع (idempotent). استبدله بـ migrate deploy
-      # بعد إضافة ترحيلات مُصدّرة إلى packages/database/prisma/migrations.
       - key: RUN_DB_PUSH
         value: "true"
       - key: SEED_DEMO
@@ -58,7 +49,6 @@ services:
       - key: ZATCA_ENVIRONMENT
         value: sandbox
       # --- تهيئة أول منشأة تلقائياً (مرة واحدة فقط، idempotent) ---
-      # Render سيطلب هذه القيم عند إنشاء الـ Blueprint. اتركها كما هي بعد ذلك.
       - key: BOOTSTRAP_TENANT
         value: "true"
       - key: TENANT_NAME
@@ -80,7 +70,7 @@ services:
   - type: web
     name: talaltechno-admin
     runtime: docker
-    plan: 0.5c-512mb
+    plan: free
     region: singapore
     dockerfilePath: apps/admin/Dockerfile
     envVars:
@@ -97,7 +87,7 @@ services:
   - type: web
     name: talaltechno-emenu
     runtime: docker
-    plan: 0.5c-512mb
+    plan: free
     region: singapore
     dockerfilePath: apps/emenu/Dockerfile
     envVars:
