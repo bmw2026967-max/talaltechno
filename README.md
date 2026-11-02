@@ -5,6 +5,8 @@
 
 [الرخصة AGPL-3.0-or-later](LICENSE) · الإصدار `1.0.0` · Node.js ≥ 22 (بناء الإنتاج) · pnpm 9.15.4
 
+> **نشر سحابي جاهز (Render):** استخدم ملف `render.yaml` ودليل [docs/RENDER-QUICKSTART.md](docs/RENDER-QUICKSTART.md) — ينشئ قاعدة البيانات وثلاث خدمات ويُهيّئ أول منشأة تلقائياً.
+
 ---
 
 ## ما الذي يوجد في هذا المستودع؟

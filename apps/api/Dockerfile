@@ -18,6 +18,9 @@ COPY . .
 
 ENV DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder
 RUN pnpm --filter @talaltechno/database exec prisma generate
+# Fail fast if the Prisma CLI is missing: the runtime entrypoint needs it for
+# `prisma db push` / provisioning.
+RUN pnpm --filter @talaltechno/database exec prisma --version
 RUN pnpm --filter @talaltechno/api... build
 
 FROM node:22-alpine AS runner
