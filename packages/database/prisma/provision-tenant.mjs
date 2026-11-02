@@ -10,6 +10,12 @@
  *     --name "مطعم النخيل" --slug alnakheel \
  *     --email owner@alnakheel.sa --password "StrongPass123!" \
  *     --branch "الفرع الرئيسي" --city الرياض
+ *
+ * يمكن تمرير القيم عبر متغيرات البيئة بدلاً من الأعلام (يستخدمه خادم Render):
+ *   TENANT_NAME, TENANT_SLUG, OWNER_EMAIL, OWNER_PASSWORD,
+ *   TENANT_BRANCH, TENANT_CITY
+ *
+ * أضف --if-missing لتخطي التهيئة بهدوء إذا كان الرمز موجوداً مسبقاً (idempotent).
  */
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
@@ -22,13 +28,15 @@ const flag = (name, fallback = undefined) => {
   return index >= 0 && args[index + 1] ? args[index + 1] : fallback;
 };
 
-const name = flag('name');
-const slug = (flag('slug') || '').trim().toLowerCase();
-const email = (flag('email') || '').trim().toLowerCase();
-const password = flag('password');
-const branchName = flag('branch', 'الفرع الرئيسي');
+const ifMissing = args.includes('--if-missing');
+
+const name = flag('name', process.env.TENANT_NAME);
+const slug = (flag('slug', process.env.TENANT_SLUG) || '').trim().toLowerCase();
+const email = (flag('email', process.env.OWNER_EMAIL) || '').trim().toLowerCase();
+const password = flag('password', process.env.OWNER_PASSWORD);
+const branchName = flag('branch', process.env.TENANT_BRANCH || 'الفرع الرئيسي');
 const branchCode = flag('branch-code', 'BR-01');
-const city = flag('city', 'الرياض');
+const city = flag('city', process.env.TENANT_CITY || 'الرياض');
 const vatNumber = flag('vat', null);
 const crNumber = flag('cr', null);
 const phone = flag('phone', null);
@@ -81,6 +89,10 @@ const tables = Array.from({ length: 10 }, (_, index) => {
 async function main() {
   const existing = await prisma.tenant.findUnique({ where: { slug } });
   if (existing) {
+    if (ifMissing) {
+      console.log(`✔ المستأجر "${slug}" موجود مسبقاً — تم تخطي التهيئة.`);
+      return;
+    }
     fail(`يوجد مستأجر بالرمز "${slug}" مسبقاً. اختر رمزاً آخر أو استخدم لوحة التحكم.`);
   }
 

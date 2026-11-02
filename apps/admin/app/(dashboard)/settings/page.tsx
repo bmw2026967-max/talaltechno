@@ -121,6 +121,7 @@ export default function SettingsPage() {
 
   const printer = settings.printer || {};
   const emenu = settings.emenu || {};
+  const emenuUrl = (process.env.NEXT_PUBLIC_EMENU_URL || '/menu').replace(/\/$/, '') || '/menu';
   const loyalty = settings.loyalty || {};
 
   const counts = useMemo(
@@ -507,11 +508,11 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="rounded-xl border bg-muted/20 p-3">
-                <p className="text-[10px] text-muted-foreground">المسار في Docker/Nginx</p>
-                <p className="mt-1 font-mono text-xs font-bold" dir="ltr">/menu/</p>
+                <p className="text-[10px] text-muted-foreground">رابط القائمة الإلكترونية</p>
+                <p className="mt-1 break-all font-mono text-xs font-bold" dir="ltr">{emenuUrl}/</p>
               </div>
               <a
-                href="/menu/"
+                href={`${emenuUrl}/`}
                 target="_blank"
                 rel="noreferrer"
                 className="flex h-11 items-center justify-center gap-2 rounded-xl border bg-card text-xs font-semibold transition hover:bg-muted"

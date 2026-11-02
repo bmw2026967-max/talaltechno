@@ -310,6 +310,7 @@ docker compose --env-file .env.cloud -f docker-compose.cloud.yml up -d
 | العنصر | الحالة |
 |---|---|
 | Docker Compose على سيرفر حقيقي | مُعد لكن غير مُشغّل في بيئة التطوير |
+| نشر Render (Blueprint + Dockerfiles) | الملفات جاهزة، لكن لم يُبنَ فعلياً هنا لعدم توفر Docker/Node في بيئة التطوير |
 | شهادة TLS من Let's Encrypt | يعتمد على DNS والسيرفر، غير مُختبر هنا |
 | بناء Android/iOS/Windows | يعتمد على CI/أجهزة البناء؛ راجع سير العمل |
 | توقيع المتاجر وApp Store | غير منفذ |
@@ -319,30 +320,61 @@ docker compose --env-file .env.cloud -f docker-compose.cloud.yml up -d
 
 ## 14. النشر على منصة PaaS (Render)
 
-بديلاً عن VPS: يُنشر التطبيق كخدمات Docker على **Render** (منصة PaaS) دون الحاجة إلى إدارة خادم.
+بديلاً عن VPS: يُنشر التطبيق كخدمات Docker على **Render** (منصة PaaS) دون الحاجة إلى إدارة خادم أو تثبيت Docker محلياً.
 
-### البنية
+### البنية والتكلفة
 
-يحتوي المستودع على `render.yaml` يحدد:
+يحتوي المستودع على `render.yaml` الذي يحدد:
 
-- قاعدة بيانات PostgreSQL مُدارة (`talaltechno-db`).
-- Redis مُدارة (`talaltechno-redis`).
-- خدمات Docker: `talaltechno-api` (health: `/health`)، `talaltechno-admin`، `talaltechno-emenu`.
+| المورد | الخطة | السعر الشهري |
+|---|---|---|
+| `talaltechno-db` — PostgreSQL مُدارة 256MB | `0.1c-256mb` | 6$ |
+| `talaltechno-api` — Docker + health `/health` | `0.5c-512mb` | 7$ |
+| `talaltechno-admin` — Docker | `0.5c-512mb` | 7$ |
+| `talaltechno-emenu` — Docker | `0.5c-512mb` | 7$ |
+| **الإجمالي** | | **~27$/شهر** |
+
+> لا نستخدم Redis لأن الـ API لا يعتمد عليه إطلاقاً (لا يوجد أي استخدام لـ `REDIS_URL` في `apps/api/src`).
+> خطط `free` توفر المال لكنها غير مناسبة للإنتاج: خدمة الويب تتوقف عند الخمول (إقلاع بطيء ~1 دقيقة)، وقاعدة PostgreSQL المجانية **تنتهي بعد 30 يوماً وتُحذف بياناتها**.
+
+### المتطلبات (على المستخدم)
+
+1. حساب GitHub ورفع المستودع (Public) — راجع قسم 11.
+2. حساب Render مع طريقة دفع (Stripe). لا يلزم Docker أو Node على جهازك.
+3. أربع قيم تُدخل عند إنشاء الـ Blueprint:
+   - `TENANT_NAME` — اسم المنشأة، مثال: `مطعم طلال`
+   - `TENANT_SLUG` — رمز لاتيني فريد، مثال: `talal`
+   - `OWNER_EMAIL` — بريد المالك (يُستخدم لتسجيل الدخول)
+   - `OWNER_PASSWORD` — كلمة مرور قوية (8 أحرف على الأقل)
 
 ### خطوات النشر
 
-1. Push الكود إلى GitHub (branch `main`).
-2. في Render: **New → Blueprint** → اختر ملف `render.yaml`.
-3. Render ينشئ الخدمات تلقائياً (api + admin + emenu + postgres + redis).
-4. بعد الانتهاء، أنشئ المنشأة (Tenant) عبر سكربت `pnpm provision:tenant` داخل الخدمة API.
-5. الوصول للتطبيقات: `https://talaltechno-api.onrender.com` و`https://talaltechno-admin.onrender.com` و`https://talaltechno-emenu.onrender.com/menu`.
+1. ارفع الكود إلى GitHub على الفرع `main`.
+2. في Render: **New → Blueprint** ثم اختر المستودع (Render يقرأ `render.yaml` تلقائياً).
+3. أدخل قيم المتغيرات الأربعة أعلاه عند الطلب، ثم **Apply**.
+4. انتظر أول بناء: ثلاث صور Docker (API + Admin + E-Menu) وقد يستغرق 15–30 دقيقة.
+5. الروابط بعد النجاح:
+   - API: `https://talaltechno-api.onrender.com` (فحص الصحة: `/health`، توثيق: `/docs`)
+   - لوحة التحكم: `https://talaltechno-admin.onrender.com`
+   - القائمة الإلكترونية: `https://talaltechno-emenu.onrender.com`
+6. سجّل الدخول إلى لوحة التحكم بـ `Tenant Slug` + `OWNER_EMAIL` + `OWNER_PASSWORD`.
 
-### ملاحضات مهمة
+### تهيئة المنشأة تلقائياً
 
-- Render يحوّل متغيرات البيئة إلى **build args** تلقائياً، لذا `NEXT_PUBLIC_API_URL` يعمل مع Dockerfiles المشروع.
-- لا تضع `/api` في `NEXT_PUBLIC_API_URL` لأن Render لا يوجد reverse proxy يزيل البادئة، والـ API فيها global prefix فارغ.
-- `RUN_DB_PUSH=false` و`SEED_DEMO=false` في الإنتاج.
-- Free/Starter plans متاحون؛ free tier قد يوقف الخدمات عند الخمول. للاستخدام الحقيقي يُفضّل الاشتراك.
+لا حاجة إلى Shell أو أوامر يدوية. عند إقلاع خدمة API:
+
+1. `RUN_DB_PUSH=true` يطبّق مخطط Prisma على قاعدة البيانات (idempotent).
+2. `BOOTSTRAP_TENANT=true` يستدعي `provision:tenant --if-missing`، فينشئ المنشأة والفرع والمخزن وحساب المالك ودليل الحسابات والتصنيفات و10 طاولات وجهاز POS — مرة واحدة فقط. أي إقلاع لاحق يتخطى الخطوة بهدوء.
+
+### ملاحظات مهمة
+
+- Render يحوّل متغيرات البيئة إلى **build args** تلقائياً، لذا `NEXT_PUBLIC_API_URL` و`NEXT_PUBLIC_EMENU_URL` تُدمج داخل صور Next.js وقت البناء.
+- لا تضع `/api` في `NEXT_PUBLIC_API_URL`: الـ API لديه global prefix فارغ ولا يوجد reverse proxy يزيل البادئة.
+- `APP_URL` في خدمة API هو قائمة CORS ويجب أن تحتوي نطاقي لوحة التحكم والقائمة الإلكترونية. إذا تغيّرت أسماء الخدمات (لأن اسم النطاق محجوز)، حدّث `APP_URL` و`NEXT_PUBLIC_API_URL` و`NEXT_PUBLIC_EMENU_URL`.
+- القائمة الإلكترونية تُخدم من **جذر نطاقها** على Render (لا يوجد reverse proxy تحت `/menu`)؛ مسار VPS خلف Caddy لا يزال يستخدم `/menu` عبر `docker-compose.cloud.yml`.
+- `RUN_DB_PUSH=true` مقبول الآن لأن المشروع لا يحتوي ترحيلات Prisma مُصدّرة بعد. عند إضافة `packages/database/prisma/migrations` استبدله بـ `prisma migrate deploy`.
+- Render Hobby يشمل نسخاً احتياطياً/Point-in-time recovery لمدة 3 أيام و5 GB نقل بيانات شهرياً.
+- ربط نطاق مخصص: **Settings → Custom Domains** ثم أضف سجل CNAME كما يطلب Render (شهادة TLS تلقائية).
 
 ### الفرق عن مسار VPS
 
@@ -352,4 +384,5 @@ docker compose --env-file .env.cloud -f docker-compose.cloud.yml up -d
 | قاعدة البيانات | يدوية (Docker أو مُدارة) | Render Postgres |
 | TLS | Caddy/Let's Encrypt | تلقائي |
 | Deploy | يدوي/SSH/GitHub Actions | تلقائي من Git |
-| Redis | يدوي | Render Redis |
+| النسخ الاحتياطي | سكربت/مزوّد | PITR مدمج (3 أيام في Hobby) |
+| التكلفة | حسب المزوّد | ~27$/شهر |

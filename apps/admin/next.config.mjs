@@ -11,7 +11,8 @@ const nextConfig = {
   output: process.env.NEXT_STANDALONE === 'true' ? 'standalone' : undefined,
   outputFileTracingRoot: path.join(directory, '../../'),
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000',
+    NEXT_PUBLIC_EMENU_URL: process.env.NEXT_PUBLIC_EMENU_URL || '/menu'
   }
 };
 

@@ -1,19 +1,32 @@
+# Render Blueprint — نشر "طلال تكنو" كخدمات Docker مُدارة.
+# الاستخدام: Render Dashboard → New → Blueprint → اختر هذا الملف.
+#
+# ملاحظات:
+# - الخدمات الثلاث + قاعدة البيانات كلها في منطقة singapore لقربها من السعودية.
+# - الخطط المدفوعة مطلوبة للإنتاج 24/7؛ خطة free تُوقف الخدمة عند الخمول
+#   وقاعدة البيانات المجانية تنتهي بعد 30 يوماً وتُحذف بياناتها.
+# - Render يمرّر متغيرات البيئة كـ build args تلقائياً، لذا NEXT_PUBLIC_*
+#   تُدمج داخل صور Next.js أثناء البناء.
+# - لا نستخدم Redis لأن الـ API لا يعتمد عليه (تحقق: لا يوجد أي استخدام لـ REDIS_URL في apps/api).
+
 databases:
   - name: talaltechno-db
     databaseName: talaltechno
     user: talal
-    plan: starter
+    # 0.1c-256mb = 6$/شهر (أرخص خطة مدفوعة دائمة). للترقية لاحقاً: 0.5c-1g (19$).
+    plan: 0.1c-256mb
     region: singapore
-
-redis:
-  - name: talaltechno-redis
-    plan: starter
+    postgresMajorVersion: "16"
 
 services:
+  # ---------------------------------------------------------------------------
+  # API (NestJS + Prisma)
+  # ---------------------------------------------------------------------------
   - type: web
     name: talaltechno-api
     runtime: docker
-    plan: starter
+    plan: 0.5c-512mb
+    region: singapore
     dockerfilePath: apps/api/Dockerfile
     healthCheckPath: /health
     envVars:
@@ -23,19 +36,17 @@ services:
         fromDatabase:
           name: talaltechno-db
           property: connectionString
-      - key: REDIS_URL
-        fromService:
-          name: talaltechno-redis
-          type: redis
-          property: connectionString
+      # CORS: النطاقات المسموح لها بالاتصال بالـ API (admin + e-menu).
+      - key: APP_URL
+        value: https://talaltechno-admin.onrender.com,https://talaltechno-emenu.onrender.com
       - key: JWT_SECRET
         generateValue: true
       - key: PIN_PEPPER
         generateValue: true
-      - key: APP_URL
-        value: https://talaltechno-api.onrender.com
+      # يطبّق مخطط Prisma عند كل إقلاع (idempotent). استبدله بـ migrate deploy
+      # بعد إضافة ترحيلات مُصدّرة إلى packages/database/prisma/migrations.
       - key: RUN_DB_PUSH
-        value: "false"
+        value: "true"
       - key: SEED_DEMO
         value: "false"
       - key: PAYMENTS_MODE
@@ -46,29 +57,53 @@ services:
         value: mock
       - key: ZATCA_ENVIRONMENT
         value: sandbox
+      # --- تهيئة أول منشأة تلقائياً (مرة واحدة فقط، idempotent) ---
+      # Render سيطلب هذه القيم عند إنشاء الـ Blueprint. اتركها كما هي بعد ذلك.
+      - key: BOOTSTRAP_TENANT
+        value: "true"
+      - key: TENANT_NAME
+        sync: false
+      - key: TENANT_SLUG
+        sync: false
+      - key: OWNER_EMAIL
+        sync: false
+      - key: OWNER_PASSWORD
+        sync: false
+      - key: TENANT_BRANCH
+        value: الفرع الرئيسي
+      - key: TENANT_CITY
+        value: الرياض
 
+  # ---------------------------------------------------------------------------
+  # لوحة التحكم (Next.js)
+  # ---------------------------------------------------------------------------
   - type: web
     name: talaltechno-admin
     runtime: docker
-    plan: starter
+    plan: 0.5c-512mb
+    region: singapore
     dockerfilePath: apps/admin/Dockerfile
     envVars:
       - key: NODE_ENV
         value: production
       - key: NEXT_PUBLIC_API_URL
         value: https://talaltechno-api.onrender.com
+      - key: NEXT_PUBLIC_EMENU_URL
+        value: https://talaltechno-emenu.onrender.com
 
+  # ---------------------------------------------------------------------------
+  # القائمة الإلكترونية (Next.js PWA) — تُخدم من جذر نطاقها
+  # ---------------------------------------------------------------------------
   - type: web
     name: talaltechno-emenu
     runtime: docker
-    plan: starter
+    plan: 0.5c-512mb
+    region: singapore
     dockerfilePath: apps/emenu/Dockerfile
     envVars:
       - key: NODE_ENV
         value: production
       - key: NEXT_PUBLIC_API_URL
         value: https://talaltechno-api.onrender.com
-      - key: NEXT_PUBLIC_BASE_PATH
-        value: /menu
-      - key: NEXT_PUBLIC_ASSET_PREFIX
-        value: /menu-assets
+      # على Render لا يوجد reverse proxy تحت /menu، لذلك تُخدم القائمة من الجذر
+      # (القيم الافتراضية في apps/emenu/Dockerfile أصبحت فارغة).
