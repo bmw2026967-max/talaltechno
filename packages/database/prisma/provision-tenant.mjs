@@ -29,6 +29,7 @@ const flag = (name, fallback = undefined) => {
 };
 
 const ifMissing = args.includes('--if-missing');
+const resetPassword = args.includes('--reset-password');
 
 const name = flag('name', process.env.TENANT_NAME);
 const slug = (flag('slug', process.env.TENANT_SLUG) || '').trim().toLowerCase();
@@ -89,6 +90,16 @@ const tables = Array.from({ length: 10 }, (_, index) => {
 async function main() {
   const existing = await prisma.tenant.findUnique({ where: { slug } });
   if (existing) {
+    if (resetPassword && password) {
+      const owner = await prisma.user.findFirst({ where: { tenantId: existing.id, role: 'OWNER' } });
+      if (owner) {
+        const passwordHash = await bcrypt.hash(password, 12);
+        await prisma.user.update({ where: { id: owner.id }, data: { passwordHash } });
+        console.log(`✔ تم إعادة تعيين كلمة مرور المالك "${owner.email}" للمنشأة "${slug}".`);
+        return;
+      }
+      fail(`لم يُعثر على حساب مالك للمنشأة "${slug}".`);
+    }
     if (ifMissing) {
       console.log(`✔ المستأجر "${slug}" موجود مسبقاً — تم تخطي التهيئة.`);
       return;

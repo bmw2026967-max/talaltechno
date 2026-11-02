@@ -13,17 +13,20 @@ if [ "${SEED_DEMO:-false}" = "true" ]; then
   pnpm --filter @talaltechno/database seed
 fi
 
-# تهيئة أول منشأة تلقائياً على Render (idempotent) إذا تم ضبط BOOTSTRAP_TENANT=true
+# تهيئة أول منشأة تلقائياً (idempotent). القيم تُقرأ من متغيرات البيئة
+# (TENANT_NAME, TENANT_SLUG, OWNER_EMAIL, OWNER_PASSWORD, ...) — لا تمرير
+# عبر shell لتجنب مشاكل التنصيص (quotes/$/spaces).
 if [ "${BOOTSTRAP_TENANT:-false}" = "true" ]; then
   if [ -n "${TENANT_NAME:-}" ] && [ -n "${TENANT_SLUG:-}" ] && [ -n "${OWNER_EMAIL:-}" ] && [ -n "${OWNER_PASSWORD:-}" ]; then
     echo ">> Bootstrapping first tenant..."
-    pnpm --filter @talaltechno/database provision:tenant -- --if-missing \
-      --name "${TENANT_NAME}" \
-      --slug "${TENANT_SLUG}" \
-      --email "${OWNER_EMAIL}" \
-      --password "${OWNER_PASSWORD}" \
-      --branch "${TENANT_BRANCH:-الفرع الرئيسي}" \
-      --city "${TENANT_CITY:-الرياض}" || echo ">> Bootstrap skipped or failed (non-fatal)"
+    EXTRA=""
+    if [ "${RESET_OWNER_PASSWORD:-false}" = "true" ]; then
+      echo ">> RESET_OWNER_PASSWORD=true — resetting owner password."
+      EXTRA="--reset-password"
+    fi
+    # shellcheck disable=SC2086
+    pnpm --filter @talaltechno/database provision:tenant -- --if-missing $EXTRA \
+      || echo ">> Bootstrap skipped or failed (non-fatal)"
   else
     echo ">> BOOTSTRAP_TENANT=true but missing required env (TENANT_NAME/TENANT_SLUG/OWNER_EMAIL/OWNER_PASSWORD) — skipping"
   fi

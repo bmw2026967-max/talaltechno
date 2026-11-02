@@ -51,6 +51,10 @@ services:
       # --- تهيئة أول منشأة تلقائياً (مرة واحدة فقط، idempotent) ---
       - key: BOOTSTRAP_TENANT
         value: "true"
+      # لاستعادة كلمة مرور المالك (إذا نسيتها): اجعلها true، أدخل OWNER_PASSWORD
+      # الجديد، أعد النشر، ثم أعد false.
+      - key: RESET_OWNER_PASSWORD
+        value: "false"
       - key: TENANT_NAME
         sync: false
       - key: TENANT_SLUG
