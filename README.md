@@ -7,6 +7,8 @@
 
 > **نشر سحابي جاهز (Render):** استخدم ملف `render.yaml` ودليل [docs/RENDER-QUICKSTART.md](docs/RENDER-QUICKSTART.md) — ينشئ قاعدة البيانات وثلاث خدمات ويُهيّئ أول منشأة تلقائياً.
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/bmw2026967-max/talaltechno)
+
 ---
 
 ## ما الذي يوجد في هذا المستودع؟
