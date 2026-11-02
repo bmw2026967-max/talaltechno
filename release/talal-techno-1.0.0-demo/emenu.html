@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5">
+  <meta name="theme-color" content="#0a2b24">
+  <meta name="description" content="القائمة الإلكترونية لمطعم طلال تكنو — تصفح القائمة واطلب من طاولتك مباشرة.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="قائمة طلال تكنو">
+  <title>قائمة طلال تكنو الإلكترونية</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest-emenu.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/emenu.css">
+</head>
+<body>
+  <div id="boot" class="e-boot">
+    <div class="e-boot-mark">T</div>
+    <strong>طلال تكنو</strong>
+    <span>جارٍ تحميل القائمة…</span>
+  </div>
+
+  <div id="emenu" class="e-shell" hidden>
+    <header class="e-header">
+      <div class="e-brand">
+        <div class="e-logo" aria-hidden="true">
+          <svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+            <path d="M13 15h22M24 15v19"/><circle cx="13" cy="15" r="2.6" fill="currentColor" stroke="none"/><circle cx="35" cy="15" r="2.6" fill="currentColor" stroke="none"/><circle cx="24" cy="34" r="2.6" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
+        <div class="e-brand-text"><strong id="e-company">طلال تكنو</strong><span id="e-tagline">TALAL TECHNO • MENU</span></div>
+      </div>
+      <div class="e-header-actions">
+        <span class="e-table-chip" id="e-table-chip" hidden></span>
+        <button class="e-icon-btn" id="e-theme" aria-label="تبديل المظهر" title="المظهر">☾</button>
+      </div>
+    </header>
+
+    <div class="e-offline" id="e-offline" hidden>أنت غير متصل — يمكنك تصفح القائمة، وسيُرسل الطلب عند عودة الاتصال.</div>
+
+    <main class="e-main">
+      <section class="e-hero">
+        <div class="e-hero-top">
+          <span class="e-open-dot"></span>
+          <span id="e-open-text">نستقبل الطلبات الآن</span>
+        </div>
+        <h1 id="e-hero-title">قائمة المطعم</h1>
+        <p id="e-hero-sub">اختر أطباقك المفضلة وأرسل الطلب مباشرة إلى المطبخ.</p>
+        <div class="e-hero-meta">
+          <span id="e-branch">الفرع الرئيسي</span>
+          <span class="e-dot"></span>
+          <span>ضريبة القيمة المضافة 15%</span>
+        </div>
+      </section>
+
+      <div class="e-search-wrap">
+        <div class="e-search">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+          <input id="e-search" type="search" placeholder="ابحث في القائمة…" autocomplete="off" />
+          <button id="e-search-clear" class="e-search-clear" hidden aria-label="مسح">×</button>
+        </div>
+      </div>
+
+      <nav class="e-cats" id="e-cats" aria-label="فئات القائمة"></nav>
+
+      <div class="e-menu-head">
+        <h2 id="e-section-title">كل الأصناف</h2>
+        <span id="e-count" class="e-count"></span>
+      </div>
+      <section class="e-grid" id="e-grid" aria-live="polite"></section>
+      <div class="e-empty" id="e-empty" hidden>
+        <div class="e-empty-ico">🍽️</div>
+        <strong>لا توجد أصناف مطابقة</strong>
+        <span>جرّب كلمة بحث أخرى أو اختر فئة مختلفة.</span>
+      </div>
+
+      <div class="e-note">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+        <span>الأسعار تشمل ضريبة القيمة المضافة. الصور توضيحية. يُرجى إخبار فريق الخدمة بأي حساسية غذائية.</span>
+      </div>
+    </main>
+
+    <div class="e-cartbar" id="e-cartbar" hidden>
+      <button class="e-cartbar-btn" id="e-open-cart">
+        <span class="e-cartbar-count" id="e-cart-count">0</span>
+        <span class="e-cartbar-text"><strong>عرض السلة</strong><small id="e-cart-total">0 ر.س</small></span>
+        <span class="e-cartbar-go">إتمام الطلب ←</span>
+      </button>
+    </div>
+
+    <div class="e-sheet-root" id="e-sheet-root"></div>
+    <div class="e-toast-root" id="e-toast-root" aria-live="polite"></div>
+
+    <footer class="e-footer">
+      <strong id="e-footer-company">طلال تكنو</strong>
+      <span id="e-footer-text">شكراً لزيارتكم — نراكم قريباً</span>
+      <small>مدعوم بواسطة Talal Techno Cloud ERP + POS</small>
+    </footer>
+  </div>
+
+  <script src="assets/js/vendor/qrcode.js"></script>
+  <script src="assets/js/core/utils.js"></script>
+  <script src="assets/js/core/db.js"></script>
+  <script src="assets/js/core/restaurant.js"></script>
+  <script src="assets/js/core/zatca.js"></script>
+  <script src="assets/js/core/integrations.js"></script>
+  <script src="assets/js/core/accounting.js"></script>
+  <script src="assets/js/core/seed.js"></script>
+  <script src="assets/js/core/pwa.js"></script>
+  <script src="assets/js/emenu.js"></script>
+</body>
+</html>

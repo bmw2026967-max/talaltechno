@@ -1,0 +1,2 @@
+4585d684eb0c056041396de0b287d662340e3e2428b523b822d2be80ccc789f9  talal-techno-1.0.0-source.zip
+b297172a82c7a9abecf807707677e82cc80bae25961ee8f3a33aed536cacf134  talal-techno-1.0.0-demo.zip

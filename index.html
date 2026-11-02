@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0a2b24">
+  <meta name="description" content="طلال تكنو — منظومة ERP سحابية متكاملة للمطاعم ونقاط البيع والمحاسبة والمخزون، مع دعم ZATCA والمدفوعات وتطبيقات التوصيل.">
+  <meta name="application-name" content="طلال تكنو">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="طلال تكنو">
+  <title>طلال تكنو | ERP + POS للمطاعم</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+  <div id="boot" class="boot-screen">
+    <div class="boot-logo">
+      <svg viewBox="0 0 48 48" width="48" height="48" aria-hidden="true">
+        <rect x="4" y="4" width="40" height="40" rx="13" fill="none" stroke="currentColor" stroke-width="2"/>
+        <path d="M14 16h20M24 16v18" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+        <circle cx="14" cy="16" r="2.6" fill="currentColor"/><circle cx="34" cy="16" r="2.6" fill="currentColor"/>
+        <circle cx="24" cy="34" r="2.6" fill="currentColor"/>
+        <path d="M34 16v7M34 23h-4M14 16v7M14 23h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <div><strong>طلال تكنو</strong><span>TALAL TECHNO • CLOUD ERP + POS</span></div>
+    </div>
+    <div class="boot-bar"><span></span></div>
+    <div class="boot-meta">Offline-First • ZATCA Phase 2 Ready • Saudi Payments</div>
+  </div>
+
+  <div id="app" class="app" hidden></div>
+  <div id="modal-root"></div>
+  <div id="toast-root" class="toast-root" aria-live="polite"></div>
+  <div id="lock-root"></div>
+
+  <script src="assets/js/vendor/qrcode.js"></script>
+  <script src="assets/js/core/utils.js"></script>
+  <script src="assets/js/core/db.js"></script>
+  <script src="assets/js/core/restaurant.js"></script>
+  <script src="assets/js/core/zatca.js"></script>
+  <script src="assets/js/core/integrations.js"></script>
+  <script src="assets/js/core/accounting.js"></script>
+  <script src="assets/js/core/seed.js"></script>
+  <script src="assets/js/core/ui.js"></script>
+  <script src="assets/js/core/actions.js"></script>
+  <script src="assets/js/core/pwa.js"></script>
+  <script src="assets/js/pages/shared.js"></script>
+  <script src="assets/js/pages/dashboard.js"></script>
+  <script src="assets/js/pages/pos.js"></script>
+  <script src="assets/js/pages/kds.js"></script>
+  <script src="assets/js/pages/tables.js"></script>
+  <script src="assets/js/pages/emenu.js"></script>
+  <script src="assets/js/pages/products.js"></script>
+  <script src="assets/js/pages/inventory.js"></script>
+  <script src="assets/js/pages/sales.js"></script>
+  <script src="assets/js/pages/purchases.js"></script>
+  <script src="assets/js/pages/contacts.js"></script>
+  <script src="assets/js/pages/accounting-page.js"></script>
+  <script src="assets/js/pages/treasury.js"></script>
+  <script src="assets/js/pages/reports.js"></script>
+  <script src="assets/js/pages/loyalty.js"></script>
+  <script src="assets/js/pages/shifts.js"></script>
+  <script src="assets/js/pages/zatca-page.js"></script>
+  <script src="assets/js/pages/integrations.js"></script>
+  <script src="assets/js/pages/users.js"></script>
+  <script src="assets/js/pages/settings.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

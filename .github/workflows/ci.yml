@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lint, test and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: talal
+          POSTGRES_PASSWORD: talal_test_password
+          POSTGRES_DB: talaltechno_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U talal -d talaltechno_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
+
+    env:
+      DATABASE_URL: postgresql://talal:talal_test_password@localhost:5432/talaltechno_test?schema=public
+      REDIS_URL: redis://localhost:6379
+      JWT_SECRET: ci-only-secret-not-for-production
+      PAYMENTS_MODE: mock
+      DELIVERY_MODE: mock
+      PRINTER_MODE: mock
+      ZATCA_ENVIRONMENT: sandbox
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        # No lockfile is committed yet. Generate it once with `pnpm install`,
+        # commit pnpm-lock.yaml, then switch this back to --frozen-lockfile.
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm db:generate
+
+      - name: Push schema to test database
+        run: pnpm --filter @talaltechno/database exec prisma db push --skip-generate
+
+      - name: Domain tests
+        run: pnpm test:domain
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build
+
+      - name: Secret scan (basic)
+        run: |
+          if git grep -nE '(BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY|sk_live_[0-9a-zA-Z]{16,}|AKIA[0-9A-Z]{16})' -- ':!*.md' ':!.env.example'; then
+            echo "Potential secret detected"; exit 1;
+          fi

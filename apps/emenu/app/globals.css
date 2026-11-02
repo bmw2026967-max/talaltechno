@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-green: #0b3d2e;
+  --brand-dark: #07241b;
+  --brand-gold: #c9a227;
+  --brand-sand: #f6f1e6;
+  --brand-cream: #fbf8f1;
+  --ink: #16231d;
+  --muted: #6b7a72;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(1200px 500px at 100% -10%, rgba(201, 162, 39, 0.12), transparent 60%),
+    radial-gradient(900px 400px at -10% 20%, rgba(11, 61, 46, 0.08), transparent 55%),
+    var(--brand-cream);
+  color: var(--ink);
+  font-family: Tajawal, 'Segoe UI', Tahoma, Arial, sans-serif;
+  min-height: 100vh;
+  overscroll-behavior-y: none;
+}
+
+::selection {
+  background: rgba(201, 162, 39, 0.35);
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.talal-card {
+  border: 1px solid rgba(11, 61, 46, 0.1);
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 18px 40px -30px rgba(7, 36, 27, 0.45);
+}
+
+.pattern-gold {
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(201, 162, 39, 0.22) 0, transparent 32%),
+    radial-gradient(circle at 85% 75%, rgba(201, 162, 39, 0.14) 0, transparent 36%),
+    linear-gradient(120deg, transparent 46%, rgba(201, 162, 39, 0.18) 47%, transparent 48%);
+}
+
+.no-scrollbar-body {
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

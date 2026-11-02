@@ -1,0 +1,136 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 40 33% 97%;
+    --foreground: 210 40% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 210 40% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 40% 10%;
+    --primary: 158 70% 14%;
+    --primary-foreground: 43 55% 96%;
+    --secondary: 42 40% 91%;
+    --secondary-foreground: 210 40% 12%;
+    --muted: 40 20% 93%;
+    --muted-foreground: 215 16% 42%;
+    --accent: 45 68% 47%;
+    --accent-foreground: 210 45% 9%;
+    --destructive: 0 72% 46%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 40 18% 85%;
+    --input: 40 18% 85%;
+    --ring: 158 70% 20%;
+    --radius: 1rem;
+  }
+
+  .dark {
+    --background: 210 42% 7%;
+    --foreground: 42 30% 94%;
+    --card: 210 38% 10%;
+    --card-foreground: 42 30% 94%;
+    --popover: 210 38% 10%;
+    --popover-foreground: 42 30% 94%;
+    --primary: 45 68% 52%;
+    --primary-foreground: 210 45% 8%;
+    --secondary: 210 30% 15%;
+    --secondary-foreground: 42 30% 94%;
+    --muted: 210 28% 14%;
+    --muted-foreground: 215 16% 66%;
+    --accent: 158 55% 35%;
+    --accent-foreground: 42 30% 96%;
+    --destructive: 0 62% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 24% 19%;
+    --input: 210 24% 19%;
+    --ring: 45 68% 52%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    background-image:
+      radial-gradient(1200px 600px at 100% -10%, rgba(201, 162, 39, 0.10), transparent 60%),
+      radial-gradient(900px 500px at 0% 0%, rgba(11, 61, 46, 0.08), transparent 55%);
+    min-height: 100vh;
+  }
+
+  .dark body {
+    background-image:
+      radial-gradient(1200px 600px at 100% -10%, rgba(201, 162, 39, 0.08), transparent 60%),
+      radial-gradient(900px 500px at 0% 0%, rgba(24, 120, 86, 0.10), transparent 55%);
+  }
+
+  ::selection {
+    background: rgba(201, 162, 39, 0.3);
+  }
+}
+
+@layer components {
+  .talal-card {
+    @apply rounded-2xl border bg-card text-card-foreground shadow-soft;
+  }
+
+  .talal-input {
+    @apply h-11 w-full rounded-xl border bg-background px-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20;
+  }
+
+  .talal-label {
+    @apply mb-1.5 block text-xs font-semibold text-muted-foreground;
+  }
+
+  .talal-table {
+    @apply w-full text-sm;
+  }
+
+  .talal-table th {
+    @apply whitespace-nowrap border-b bg-muted/40 px-3 py-2.5 text-right text-xs font-semibold text-muted-foreground;
+  }
+
+  .talal-table td {
+    @apply border-b px-3 py-3 text-right align-middle;
+  }
+
+  .talal-table tr:last-child td {
+    @apply border-b-0;
+  }
+
+  .gold-line {
+    background: linear-gradient(90deg, transparent, rgba(201, 162, 39, 0.65), transparent);
+    height: 1px;
+  }
+
+  .metric-value {
+    @apply text-2xl font-bold tracking-tight tabular-nums;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.35);
+    border-radius: 999px;
+  }
+}

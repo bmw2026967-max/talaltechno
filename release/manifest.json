@@ -1,0 +1,46 @@
+{
+  "name": "طلال تكنو",
+  "nameEn": "Talal Techno",
+  "version": "1.0.0",
+  "releaseDate": "2026-10-27",
+  "license": "AGPL-3.0-or-later",
+  "status": "official-open-source-release",
+  "productionReady": false,
+  "certifications": [],
+  "artifacts": [
+    {
+      "file": "talal-techno-1.0.0-source.zip",
+      "description": "الحزمة الكاملة: العرض التجريبي + Monorepo الإنتاجي + التوثيق + Docker + CI",
+      "bytes": 2431348,
+      "sha256": "4585d684eb0c056041396de0b287d662340e3e2428b523b822d2be80ccc789f9"
+    },
+    {
+      "file": "talal-techno-1.0.0-demo.zip",
+      "description": "نسخة العرض التجريبي فقط — تعمل في المتصفح دون خادم أو قاعدة بيانات",
+      "bytes": 309756,
+      "sha256": "b297172a82c7a9abecf807707677e82cc80bae25961ee8f3a33aed536cacf134"
+    }
+  ],
+  "verification": {
+    "install": "pnpm install — 526 packages",
+    "typecheck": "pnpm typecheck — 11/11 tasks",
+    "build": "pnpm build — 7/7 tasks; Admin 16 routes; E-Menu 4 routes",
+    "test": "pnpm test — 12/12 tasks; domain 60/60",
+    "database": "PostgreSQL 17.10 UTF8 — prisma db push + seed successful",
+    "apiRuntime": "health/login/catalog/public menu/trial balance/ZATCA/sale/return/orders/split/KDS/integrations/sync verified",
+    "zatcaChain": "13 → 14 → 15 invoices; 0 broken; 0 tampered",
+    "adminRuntime": "next start /login → HTTP 200",
+    "emenuRuntime": "next start / → HTTP 200"
+  },
+  "knownLimitations": [
+    "Docker Compose not executed in the release environment (Docker unavailable)",
+    "Flutter POS not compiled (Flutter/Android SDK unavailable)",
+    "Redis/BullMQ not runtime-tested",
+    "ZATCA/SAMA sandbox only; no certification claimed",
+    "Payments and delivery are mock/sandbox only",
+    "No E2E, tenant-isolation, or IDOR automated tests yet",
+    "No Prisma migration files exported (db push used)",
+    "Thermal printing tested with mock ESC/POS only",
+    "Seed is destructive and development-only"
+  ]
+}

@@ -1,0 +1,48 @@
+# Talal Techno — automatic HTTPS reverse proxy.
+# DOMAIN and ACME_EMAIL come from .env.cloud via docker-compose.cloud.yml.
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	header {
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "geolocation=(), microphone=(), camera=()"
+		-Server
+	}
+
+	# Health check stays unprefixed.
+	handle /health {
+		reverse_proxy api:4000
+	}
+
+	# /api/* is stripped before reaching NestJS (/api/auth/login -> /auth/login).
+	handle_path /api/* {
+		reverse_proxy api:4000
+	}
+
+	# E-Menu Next.js static assets use assetPrefix=/menu-assets.
+	handle /menu-assets/* {
+		uri strip_prefix /menu-assets
+		reverse_proxy emenu:3001
+	}
+
+	# E-Menu app routes keep basePath=/menu.
+	handle /menu* {
+		reverse_proxy emenu:3001
+	}
+
+	# Admin dashboard owns the root.
+	handle {
+		reverse_proxy admin:3000
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

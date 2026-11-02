@@ -1,0 +1,57 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.pnpm-debug.log*
+npm-debug.log*
+yarn-error.log*
+
+# Build output
+dist/
+build/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+prisma/migrations/dev.db*
+
+# Flutter / Dart
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+build/app/
+*.iml
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Logs / runtime
+logs/
+*.log
+tmp/
+.turbo/
+.playwright/
+test-results/
+
+# Local demo artefacts
+screenshots/*.tmp

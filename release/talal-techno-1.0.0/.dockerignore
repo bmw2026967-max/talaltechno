@@ -1,0 +1,28 @@
+node_modules
+**/node_modules
+dist
+**/dist
+.next
+**/.next
+.git
+.github
+.turbo
+coverage
+screenshots
+*.log
+.env
+.env.*
+!.env.example
+assets
+index.html
+emenu.html
+sw.js
+manifest*.webmanifest
+# Keep the e-menu PWA assets even though the root demo service worker and
+# manifest are excluded from production images.
+!apps/emenu/public/sw.js
+!apps/emenu/public/manifest.webmanifest
+!apps/emenu/public/icon.svg
+!apps/emenu/public/icon-192.png
+!apps/emenu/public/icon-512.png
+!apps/emenu/public/apple-touch-icon.png

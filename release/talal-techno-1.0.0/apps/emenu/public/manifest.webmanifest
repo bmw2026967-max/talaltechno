@@ -1,0 +1,42 @@
+{
+  "name": "قائمة طلال تكنو",
+  "short_name": "طلال تكنو",
+  "description": "قائمة إلكترونية للطلب من الطاولة — طلال تكنو. الدفع عند الكاشير.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FBF8F1",
+  "theme_color": "#07241B",
+  "categories": ["food", "shopping", "business"],
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "فتح القائمة",
+      "short_name": "القائمة",
+      "url": "./",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

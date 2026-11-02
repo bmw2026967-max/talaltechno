@@ -1,0 +1,144 @@
+name: talaltechno-cloud
+
+# Production-oriented stack: PostgreSQL + Redis + API + Admin + E-Menu behind
+# Caddy with automatic HTTPS. Start with:
+#   docker compose --env-file .env.cloud -f docker-compose.cloud.yml up -d --build
+# The database has no published port; only Caddy exposes 80/443.
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-talaltechno}
+      TZ: ${TZ:-Asia/Riyadh}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB:-talaltechno}"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    networks:
+      - backend
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    networks:
+      - backend
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - .env.cloud
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      # DATABASE_URL قابلة للتعيين (لأنظمة قاعدة بيانات مُدارة مثل AWS RDS / Cloud SQL):
+      # عند الإنتاج السحابي، عيّن DATABASE_URL إلى عنوان الـ endpoint الخاص بقاعدة مُدارة
+      # واترك خدمة postgres الداخلية متوقفة. الافتراضي يشير إلى postgres الداخلي.
+      DATABASE_URL: ${DATABASE_URL:-postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-talaltechno}?schema=public}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      APP_URL: ${APP_URL:?APP_URL is required}
+      RUN_DB_PUSH: ${RUN_DB_PUSH:-true}
+      SEED_DEMO: ${SEED_DEMO:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    expose:
+      - "4000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+    networks:
+      - backend
+
+  admin:
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL:?PUBLIC_API_URL is required}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL}
+    depends_on:
+      api:
+        condition: service_healthy
+    expose:
+      - "3000"
+    networks:
+      - backend
+
+  emenu:
+    build:
+      context: .
+      dockerfile: apps/emenu/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL}
+        NEXT_PUBLIC_BASE_PATH: /menu
+        NEXT_PUBLIC_ASSET_PREFIX: /menu-assets
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      NEXT_PUBLIC_API_URL: ${PUBLIC_API_URL}
+    depends_on:
+      api:
+        condition: service_healthy
+    expose:
+      - "3001"
+    networks:
+      - backend
+
+  caddy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+      - "${HTTPS_PORT:-443}:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN:?DOMAIN is required}
+      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL is required}
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+      - admin
+      - emenu
+    networks:
+      - backend
+
+volumes:
+  pgdata:
+  redisdata:
+  caddy_data:
+  caddy_config:
+
+networks:
+  backend:
+    name: talaltechno-cloud-net

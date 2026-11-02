@@ -1,0 +1,31 @@
+{
+  "name": "@talaltechno/database",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Prisma schema, client and seed data for Talal Techno",
+  "scripts": {
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio",
+    "db:push": "prisma db push",
+    "seed": "node prisma/seed.js",
+    "provision:tenant": "node prisma/provision-tenant.mjs",
+    "typecheck": "prisma validate",
+    "build": "prisma generate",
+    "test": "node --test"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.2.1",
+    "@talaltechno/domain": "workspace:*",
+    "bcryptjs": "^2.4.3"
+  },
+  "devDependencies": {
+    "prisma": "^6.2.1",
+    "typescript": "^5.7.2"
+  }
+}
