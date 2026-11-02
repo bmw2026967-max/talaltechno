@@ -2,6 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Thermal printer friendly output (80mm) */
+@media print {
+  body * { visibility: hidden; }
+  .print-receipt, .print-receipt * { visibility: visible; }
+  .print-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+    padding: 4mm;
+  }
+  .no-print { display: none !important; }
+  @page { size: 80mm auto; margin: 0; }
+}
+
 @layer base {
   :root {
     --background: 40 33% 97%;
